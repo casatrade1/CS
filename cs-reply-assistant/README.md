@@ -41,6 +41,13 @@ cd cs-reply-assistant
 npm run generate-intents
 ```
 
+### 로컬은 “그냥 켜면 자동 반영”으로 동작
+
+`npm run dev` / `npm run build` 실행 시, 프로젝트 상위 폴더(`../`)에 CSV가 있으면
+자동으로 `src/lib/intents.generated.ts`를 생성/갱신합니다.
+
+> Vercel처럼 빌드 환경에 CSV가 없으면, 자동 생성은 **스킵**되고 기존 파일을 유지합니다.
+
 이후 `src/lib/intents.ts`는 `BASE_INTENTS + GENERATED_INTENTS`로 합쳐서 추천에 사용합니다.
 
 > 주의: CSV에는 민감정보가 섞일 수 있어 자동 마스킹을 수행하지만 100% 완벽하진 않습니다.  

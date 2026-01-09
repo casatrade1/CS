@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/generate-intents-from-csv.mjs",
+    "prebuild": "node scripts/generate-intents-from-csv.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

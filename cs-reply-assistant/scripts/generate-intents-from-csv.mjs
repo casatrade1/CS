@@ -237,6 +237,14 @@ function main() {
   const sourceDir = process.argv[2] ? path.resolve(process.argv[2]) : DEFAULT_SOURCE_DIR;
   const csvFiles = listCsvFiles(sourceDir);
 
+  // Vercel/CI처럼 CSV가 레포에 없을 수 있음.
+  // 이 경우 기존 intents.generated.ts를 "빈 값으로 덮어쓰면" 오히려 망하므로 아무 것도 하지 않고 종료.
+  if (csvFiles.length === 0) {
+    console.log(`[skip] no csv files found in: ${sourceDir}`);
+    console.log(`[skip] keep existing: ${OUT_FILE}`);
+    return;
+  }
+
   const allPairs = [];
   for (const file of csvFiles) {
     const content = fs.readFileSync(file, "utf-8");
