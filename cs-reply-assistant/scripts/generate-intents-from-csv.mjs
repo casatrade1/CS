@@ -21,11 +21,31 @@ const ROOT = process.cwd();
 const DEFAULT_SOURCE_DIR = path.resolve(ROOT, ".."); // /06_CS프로그램
 const OUT_FILE = path.resolve(ROOT, "src/lib/intents.generated.ts");
 
-function listCsvFiles(dir) {
+function listCsvFilesInDir(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   return entries
     .filter((e) => e.isFile() && e.name.toLowerCase().endsWith(".csv"))
     .map((e) => path.join(dir, e.name));
+}
+
+function resolveInputs(args) {
+  // args가 없으면 기본 디렉토리 1개
+  const inputs = args.length ? args : [DEFAULT_SOURCE_DIR];
+
+  const files = [];
+  for (const input of inputs) {
+    const p = path.resolve(input);
+    if (!fs.existsSync(p)) continue;
+    const st = fs.statSync(p);
+    if (st.isDirectory()) {
+      files.push(...listCsvFilesInDir(p));
+    } else if (st.isFile() && p.toLowerCase().endsWith(".csv")) {
+      files.push(p);
+    }
+  }
+
+  // 중복 제거
+  return Array.from(new Set(files));
 }
 
 function parseCsv(content) {
@@ -130,6 +150,9 @@ function redactPII(text) {
   t = t.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "<EMAIL>");
   // phone (KR)
   t = t.replace(/\b(01[016789]|02|0[3-6][1-5])[-\s]?\d{3,4}[-\s]?\d{4}\b/g, "<PHONE>");
+  // id/password 라벨 기반(공백/개행 포함 케이스)
+  t = t.replace(/(비밀번호|password)\s*[:：]\s*[^\s,]+/gi, "$1: <PASSWORD>");
+  t = t.replace(/(아이디|id)\s*[:：]\s*[^\s,]+/gi, "$1: <ID>");
   // long digits (account/order/approval) - keep short amounts like 99,000
   t = t.replace(/\b\d{6,}\b/g, "<NUM>");
   // url
@@ -234,13 +257,17 @@ function toTs(intentObjs) {
 }
 
 function main() {
-  const sourceDir = process.argv[2] ? path.resolve(process.argv[2]) : DEFAULT_SOURCE_DIR;
-  const csvFiles = listCsvFiles(sourceDir);
+  // 사용법:
+  // - 기본: (인자 없음) ../ 안의 *.csv
+  // - 특정 폴더: node ... /path/to/dir
+  // - 특정 파일: node ... /path/to/file.csv
+  // - 여러 개: node ... /dir1 /file2.csv /dir3
+  const csvFiles = resolveInputs(process.argv.slice(2));
 
   // Vercel/CI처럼 CSV가 레포에 없을 수 있음.
   // 이 경우 기존 intents.generated.ts를 "빈 값으로 덮어쓰면" 오히려 망하므로 아무 것도 하지 않고 종료.
   if (csvFiles.length === 0) {
-    console.log(`[skip] no csv files found in: ${sourceDir}`);
+    console.log(`[skip] no csv files found in inputs. default would be: ${DEFAULT_SOURCE_DIR}`);
     console.log(`[skip] keep existing: ${OUT_FILE}`);
     return;
   }

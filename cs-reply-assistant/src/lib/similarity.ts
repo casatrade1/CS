@@ -52,6 +52,51 @@ function softmax(scores: number[], temperature = 0.18): number[] {
   return exps.map((v) => v / sum);
 }
 
+function actionlessPenalty(answer: string): number {
+  const a = normalizeWhitespace(answer);
+  // 너무 짧은 “확인/감사/가능” 류는 추천에서 뒤로 보내기
+  if (a.length <= 18) return 0.35;
+  if (a.length <= 35) return 0.55;
+
+  const patterns = [
+    /^네[,.\s]/,
+    /^안녕하세요[,.\s]$/,
+    /내용\s*전달\s*받았/,
+    /감사합니다[.!]?$/,
+    /확인\s*후\s*답변/,
+    /가능합니다[.!]?$/,
+    /확인했습니다[.!]?$/
+  ];
+  if (patterns.some((re) => re.test(a))) return 0.6;
+
+  return 1;
+}
+
+function keywordBonus(params: { question: string; intent: Intent }): number {
+  const q = normalizeWhitespace(params.question).toLowerCase();
+  const hay = normalizeWhitespace(
+    `${params.intent.title} ${params.intent.tags?.join(" ") ?? ""} ${params.intent.examples.join(" ")} ${
+      params.intent.answer
+    }`
+  ).toLowerCase();
+
+  // 운영에서 자주 쓰는 핵심 키워드들: 특정 키워드가 질문에 나오면, 그 키워드가 포함된 인텐트에 보너스
+  const rules: Array<{ when: string[]; boostIfContains: string[]; bonus: number }> = [
+    { when: ["한도", "입찰한도", "증액", "추가", "추가입금"], boostIfContains: ["한도", "증액", "추가", "입금"], bonus: 0.06 },
+    { when: ["보증금"], boostIfContains: ["보증금", "한도"], bonus: 0.05 },
+    { when: ["감정서", "재발급", "안왔", "미도착"], boostIfContains: ["감정서", "발급", "배송"], bonus: 0.05 },
+    { when: ["수선"], boostIfContains: ["수선", "비용", "기간"], bonus: 0.05 }
+  ];
+
+  let bonus = 0;
+  for (const r of rules) {
+    if (!r.when.some((w) => q.includes(w))) continue;
+    const hits = r.boostIfContains.filter((k) => hay.includes(k)).length;
+    if (hits > 0) bonus += r.bonus;
+  }
+  return bonus;
+}
+
 export function suggestReplies(params: {
   intents: Intent[];
   question: string;
@@ -68,7 +113,9 @@ export function suggestReplies(params: {
       // intent 문서 벡터는 examples 전체를 합친 텍스트로 구성
       const doc = intent.examples.join(" / ") + " " + intent.title;
       const dVec = tf(toNgrams(doc));
-      const score = cosine(qVec, dVec);
+      let score = cosine(qVec, dVec);
+      score *= actionlessPenalty(intent.answer);
+      score += keywordBonus({ question, intent });
       return { intent, score };
     })
     .sort((a, b) => b.score - a.score)

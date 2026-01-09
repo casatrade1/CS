@@ -41,6 +41,17 @@ cd cs-reply-assistant
 npm run generate-intents
 ```
 
+### Downloads 같은 “폴더 밖 CSV”도 포함하기
+
+`npm run generate-intents -- <폴더/파일...>` 형태로 여러 경로를 줄 수 있습니다.
+
+예시(요청하신 파일 포함):
+
+```bash
+cd cs-reply-assistant
+npm run generate-intents -- "../" "/Users/hwangseungha/Downloads/까사트레이드_Me.csv"
+```
+
 ### 로컬은 “그냥 켜면 자동 반영”으로 동작
 
 `npm run dev` / `npm run build` 실행 시, 프로젝트 상위 폴더(`../`)에 CSV가 있으면

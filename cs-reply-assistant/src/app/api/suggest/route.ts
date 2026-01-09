@@ -33,20 +33,27 @@ export async function POST(req: Request) {
     .filter(Boolean) as (typeof INTENTS)[number][];
 
   let modelUsed: "gemini" | "local" = "local";
+  let geminiStatus: "missing_key" | "failed" | "ok" = "missing_key";
   let suggestions = baseSuggestions.slice(0, 3);
 
-  const geminiRanked = await rankWithGemini({
-    question: trimmed,
-    candidates: baseCandidateIntents
-  });
+  const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
+  if (hasGeminiKey) geminiStatus = "failed";
+
+  const geminiRanked = hasGeminiKey
+    ? await rankWithGemini({
+        question: trimmed,
+        candidates: baseCandidateIntents
+      }).catch(() => null)
+    : null;
 
   if (geminiRanked?.ranked?.length) {
     suggestions = applyGeminiRanking({
       intentsById,
-      baseSuggestions: baseSuggestions.slice(0, 3),
+      baseSuggestions: baseSuggestions.slice(0, 5),
       ranked: geminiRanked.ranked
     });
     modelUsed = "gemini";
+    geminiStatus = "ok";
   }
 
   const top1 = suggestions[0];
@@ -57,6 +64,7 @@ export async function POST(req: Request) {
     meta: {
       verdict,
       modelUsed,
+      geminiStatus,
       thresholds: {
         strong: ">=90% (and score>=0.22)",
         normal: ">=70% (and score>=0.18)",

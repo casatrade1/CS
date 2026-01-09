@@ -18,6 +18,7 @@ export default function HomePage() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [verdict, setVerdict] = useState<"strong" | "normal" | "low" | null>(null);
   const [modelUsed, setModelUsed] = useState<"gemini" | "local" | null>(null);
+  const [geminiStatus, setGeminiStatus] = useState<"missing_key" | "failed" | "ok" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const pctClass = (pct: number) => {
@@ -52,7 +53,11 @@ export default function HomePage() {
       const json = (await res.json()) as
         | {
             suggestions: Suggestion[];
-            meta?: { verdict?: "strong" | "normal" | "low"; modelUsed?: "gemini" | "local" };
+            meta?: {
+              verdict?: "strong" | "normal" | "low";
+              modelUsed?: "gemini" | "local";
+              geminiStatus?: "missing_key" | "failed" | "ok";
+            };
           }
         | { error: string };
 
@@ -66,6 +71,7 @@ export default function HomePage() {
       setSuggestions((json as any).suggestions ?? []);
       setVerdict(((json as any).meta?.verdict as any) ?? null);
       setModelUsed(((json as any).meta?.modelUsed as any) ?? null);
+      setGeminiStatus(((json as any).meta?.geminiStatus as any) ?? null);
     } catch {
       setError("네트워크/서버 오류로 추천에 실패했습니다.");
     } finally {
@@ -102,6 +108,20 @@ export default function HomePage() {
                     (판단: <b>{modelUsed === "gemini" ? "Gemini" : "Local"}</b>)
                   </>
                 ) : null}{" "}
+                {modelUsed === "local" && geminiStatus && geminiStatus !== "ok" ? (
+                  <>
+                    {" "}
+                    <span style={{ opacity: 0.8 }}>
+                      [Gemini:{" "}
+                      {geminiStatus === "missing_key"
+                        ? "키 없음"
+                        : geminiStatus === "failed"
+                          ? "호출 실패"
+                          : "OK"}
+                      ]
+                    </span>
+                  </>
+                ) : null}
                 — {verdictHint(verdict)}
               </span>
             ) : (
