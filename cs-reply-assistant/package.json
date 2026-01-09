@@ -1,0 +1,28 @@
+{
+  "name": "cs-reply-assistant",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/generate-intents-from-csv.mjs",
+    "prebuild": "node scripts/generate-intents-from-csv.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "build-dataset": "node scripts/build-dataset.mjs",
+    "generate-intents": "node scripts/generate-intents-from-csv.mjs"
+  },
+  "dependencies": {
+    "next": "14.2.15",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.4.5"
+  }
+}
+
+
