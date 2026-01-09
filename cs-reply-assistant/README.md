@@ -31,6 +31,21 @@ npm run build-dataset
 
 생성물: `data/extracted_qa.json` (추천 엔진에는 아직 “자동 반영”하지 않고, 사람이 검수 후 인텐트에 반영하는 흐름을 추천)
 
+## CSV 싹다 반영(자동 인텐트 생성)
+
+`/Users/.../06_CS프로그램` 안의 `까사트레이드_*.csv` 같은 상담 CSV를 전부 분석해서,
+“답변 템플릿(회사 답변)” 기준으로 자동 그룹핑 후 `src/lib/intents.generated.ts`를 생성합니다.
+
+```bash
+cd cs-reply-assistant
+npm run generate-intents
+```
+
+이후 `src/lib/intents.ts`는 `BASE_INTENTS + GENERATED_INTENTS`로 합쳐서 추천에 사용합니다.
+
+> 주의: CSV에는 민감정보가 섞일 수 있어 자동 마스킹을 수행하지만 100% 완벽하진 않습니다.  
+> 배포용 레포에는 원본 CSV를 올리지 않는 것을 권장합니다.
+
 ## Vercel 배포(초보용)
 
 1. GitHub에 `cs-reply-assistant` 폴더를 레포로 올립니다(Private 추천).

@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "build-dataset": "node scripts/build-dataset.mjs"
+    "build-dataset": "node scripts/build-dataset.mjs",
+    "generate-intents": "node scripts/generate-intents-from-csv.mjs"
   },
   "dependencies": {
     "next": "14.2.15",

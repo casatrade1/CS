@@ -1,8 +1,28 @@
 import type { Intent } from "./types";
+import { GENERATED_INTENTS } from "./intents.generated";
 
 // MVP: “표준 답변” + 예문(유사도 검색에 쓰임)
 // 운영하면서 examples를 계속 추가하면 추천 정확도가 가장 빨리 올라갑니다.
-export const INTENTS: Intent[] = [
+export const BASE_INTENTS: Intent[] = [
+  {
+    id: "about_casatrade",
+    title: "까사트레이드가 무엇인지(서비스 소개)",
+    tags: ["소개", "서비스", "개요"],
+    examples: [
+      "까사트레이드 뭐에요",
+      "까사트레이드는 뭐예요",
+      "까사트레이드가 뭐임",
+      "까사트레이드가 어떤 서비스인가요",
+      "까사트레이드 소개해줘",
+      "여기 뭐하는 곳이에요",
+      "경매 플랫폼인가요",
+      "명품 경매 플랫폼 맞나요",
+      "어떤 방식으로 이용하나요",
+      "어떤 사람들 이용하나요"
+    ],
+    answer:
+      "까사트레이드는 **해외 B2B 명품 경매 물건을 입찰부터 통관·검수/감정·배송까지 원스톱으로 진행**할 수 있게 돕는 플랫폼입니다.\n\n- 매주 다수의 해외 경매 물건이 출품\n- 입찰은 보증금(=1일 입찰한도) 설정 후 이용\n- 낙찰 후 통관/검수·감정(CAS) 및 필요 시 수선(CRS)까지 연계 가능\n\n원하시면 ‘가입/비용/경매 방식(직접·현장)’부터 순서대로 안내드릴게요."
+  },
   {
     id: "signup_how",
     title: "회원가입/입점신청 절차",
@@ -147,5 +167,9 @@ export const INTENTS: Intent[] = [
       "세금 처리 방식이 다릅니다.\n\n- 개인: 현금영수증\n- 사업자: 세금계산서 발행\n\n발행/승인번호는 홈택스에서 확인 가능하며, 누락/미발행 이슈가 있으면 확인 후 안내드리겠습니다."
   }
 ];
+
+// CSV 전체 분석 결과로 생성된 인텐트를 뒤에 합칩니다.
+// (BASE_INTENTS는 사람이 관리하는 “핵심 표준답변”, GENERATED_INTENTS는 CSV에서 자동으로 뽑힌 템플릿)
+export const INTENTS: Intent[] = [...BASE_INTENTS, ...GENERATED_INTENTS];
 
 
