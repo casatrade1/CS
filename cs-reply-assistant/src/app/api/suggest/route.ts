@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { INTENTS } from "@/lib/intents";
-import { suggestReplies } from "@/lib/similarity";
-import { applyGeminiRanking, rankWithGemini } from "@/lib/gemini";
+import { INTENTS } from "../../../lib/intents";
+import { suggestReplies } from "../../../lib/similarity";
+import { applyGeminiRanking, rankWithGemini } from "../../../lib/gemini";
 
 function verdictFrom(confidencePct: number, score: number) {
   // score는 텍스트 유사도(0~1)에 가까운 값. 운영하면서 임계값은 조정 가능.
